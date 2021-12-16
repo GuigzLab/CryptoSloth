@@ -11,7 +11,7 @@ from src.NFT import NFT
 class NFTGenerator:
     def __init__(self, n=10):
         self.edition_size = n
-        self.assets_directory = "assets"
+        self.layers_directory = "layers"
         self.weighted_layers = {
             "accessories": 5,
             "eyewear": 50,
@@ -37,7 +37,7 @@ class NFTGenerator:
         #         elements.append(os.path.join(root, file))
         #
         # # elements = [x for x in elements if "sloth" not in x]
-        # img = Image.open('assets/head/basic#1.png', 'r').convert("RGBA")
+        # img = Image.open('layers/head/basic#1.png', 'r').convert("RGBA")
         #
         # dirname = os.path.join("sloths", datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
         # os.makedirs(dirname, exist_ok=True)
@@ -59,7 +59,7 @@ class NFTGenerator:
         for key, value in self.weighted_layers.items():
             weight_list += [key] * value
 
-        # Generate layers for each art
+        # Generate src for each art
         for i in range(self.edition_size):
             temp_weight_list = copy.deepcopy(weight_list)
             layers = [random.choice(temp_weight_list)]
