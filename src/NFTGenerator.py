@@ -5,6 +5,8 @@ import random
 import os
 from datetime import datetime
 
+from src.NFT import NFT
+
 
 class NFTGenerator:
     def __init__(self, n=10):
@@ -14,7 +16,7 @@ class NFTGenerator:
             "accessories": 5,
             "eyewear": 50,
             "headwear": 50,
-            "body": 1,
+            "body": 10,
         }
         self.multiple_layers_chance = 10
         self.sort_order = {
@@ -24,6 +26,7 @@ class NFTGenerator:
             "headwear": 3,
             "accessories": 4,
         }
+        self.nft_list = [()]
 
     def generate(self):
         # elements = []
@@ -34,7 +37,7 @@ class NFTGenerator:
         #         elements.append(os.path.join(root, file))
         #
         # # elements = [x for x in elements if "sloth" not in x]
-        # img = Image.open('assets/head/basic.png', 'r').convert("RGBA")
+        # img = Image.open('assets/head/basic#1.png', 'r').convert("RGBA")
         #
         # dirname = os.path.join("sloths", datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
         # os.makedirs(dirname, exist_ok=True)
@@ -50,11 +53,11 @@ class NFTGenerator:
         #     background.save(os.path.join(dirname, f"{n}.png"))
         # TODO - Generate a list of NFTs, then save them to a directory
 
+        nft_list = []
+
         weight_list = []
         for key, value in self.weighted_layers.items():
             weight_list += [key] * value
-
-        print(weight_list)
 
         # Generate layers for each art
         for i in range(self.edition_size):
@@ -64,9 +67,24 @@ class NFTGenerator:
             while random.randrange(100) < self.multiple_layers_chance and len(temp_weight_list) > 0:
                 layers.append(random.choice(temp_weight_list))
                 temp_weight_list = [x for x in temp_weight_list if x != layers[-1]]
+            # Images always have heads
+            layers.append("head")
             # Sort list using layer order
             layers.sort(key=lambda val: self.sort_order[val])
-            print(layers)
 
-    def prewiew_gif(self):
-        pass
+            edition = NFT(layers)
+            nft_list.append(edition.create_image())
+
+        dirname = os.path.join("sloths", datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
+        os.makedirs(dirname, exist_ok=True)
+        for n, nft in enumerate(nft_list):
+            nft.save(os.path.join(dirname, f"{n}.png"))
+        # Generate animated GIF
+        self.generate_prewiew_gif(nft_list, dirname)
+
+    @staticmethod
+    def generate_prewiew_gif(images, dirname):
+        if images:
+            images = [image.quantize(method=Image.MEDIANCUT) for image in images]
+            images[0].save(os.path.join(dirname, "preview.gif"), format='GIF', save_all=True, append_images=images[1:],
+                           optimize=False, duration=500, loop=0)
