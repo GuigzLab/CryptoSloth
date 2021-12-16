@@ -7,11 +7,11 @@ You only need to install [Pillow](https://pypi.org/project/Pillow/).
 pip install Pillow
 ```
 
-## Usage 
-### Configuration 
+## Usage ▶
+### Configuration ⚙
 Coming soon
 
-### Generation
+### Generation 🖼
 ```shell
 python3 main.py [...options]
 ```
