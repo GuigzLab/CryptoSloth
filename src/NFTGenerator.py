@@ -1,17 +1,16 @@
 import copy
-
-from PIL import Image
 import random
 import os
 from datetime import datetime
+from PIL import Image
+import configparser
 
+from src.helpers import DotDict
 from src.NFT import NFT
 
 
 class NFTGenerator:
-    def __init__(self, n=10):
-        self.edition_size = n
-        self.layers_directory = "layers"
+    def __init__(self):
         self.weighted_layers = {
             "accessories": 5,
             "eyewear": 50,
@@ -26,56 +25,66 @@ class NFTGenerator:
             "headwear": 3,
             "accessories": 4,
         }
-        self.nft_list = [()]
+        self.config = DotDict(self.get_config())
+        print(self.config)
+
+    @staticmethod
+    def get_config():
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+        conf = {}
+        for v in config["GENERAL"].items():
+            conf[v[0]] = v[1]
+
+        conf['edition_size'] = int(conf['edition_size'])
+
+        for v in config["IMAGE"].items():
+            conf[v[0]] = v[1]
+
+        conf['size'] = [int(x.strip()) for x in conf['size'].split('x')]
+
+        layers = [x.strip() for x in conf['layers'].split(';')]
+        weights = [int(x) for x in conf['layer_weights'].split(';')]
+        conf['layers'] = {}
+        conf['layer_weights'] = {}
+        for i, l in enumerate(layers):
+            conf['layers'][l] = i
+            conf['layer_weights'][l] = weights[i]
+
+        conf['multiple_layers_chance'] = int(conf['multiple_layers_chance'])
+
+        print(weights)
+
+        return conf
 
     def generate(self):
-        # elements = []
-        # for root, subdirectories, files in os.walk(self.assets_directory):
-        #     for subdirectory in subdirectories:
-        #         print(os.path.join(root, subdirectory))
-        #     for file in files:
-        #         elements.append(os.path.join(root, file))
-        #
-        # # elements = [x for x in elements if "sloth" not in x]
-        # img = Image.open('layers/head/basic#1.png', 'r').convert("RGBA")
-        #
-        # dirname = os.path.join("sloths", datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
-        # os.makedirs(dirname, exist_ok=True)
-        # for n, e in enumerate(elements):
-        #     random_rgb = tuple([random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)])
-        #     print(random_rgb)
-        #
-        #     background = Image.new('RGB', (500, 500), color=random_rgb)
-        #     background.paste(img, (0, 0), img)
-        #     element = Image.open(e, 'r').convert("RGBA")
-        #     background.paste(element, (0, 0), element)
-        #
-        #     background.save(os.path.join(dirname, f"{n}.png"))
-        # TODO - Generate a list of NFTs, then save them to a directory
-
         nft_list = []
 
         weight_list = []
-        for key, value in self.weighted_layers.items():
-            weight_list += [key] * value
+        permanent_layers = []
+        for key, value in self.config.layer_weights.items():
+            if value <= 0:
+                permanent_layers.append(key)
+            else:
+                weight_list += [key] * value
 
         # Generate src for each art
-        for i in range(self.edition_size):
+        for i in range(self.config.edition_size):
             temp_weight_list = copy.deepcopy(weight_list)
             layers = [random.choice(temp_weight_list)]
             temp_weight_list = [x for x in temp_weight_list if x != layers[-1]]
-            while random.randrange(100) < self.multiple_layers_chance and len(temp_weight_list) > 0:
+            while random.randrange(100) < self.config.multiple_layers_chance and len(temp_weight_list) > 0:
                 layers.append(random.choice(temp_weight_list))
                 temp_weight_list = [x for x in temp_weight_list if x != layers[-1]]
             # Images always have heads
-            layers.append("head")
+            layers += permanent_layers
             # Sort list using layer order
-            layers.sort(key=lambda val: self.sort_order[val])
+            layers.sort(key=lambda val: self.config.layers[val])
 
-            edition = NFT(layers)
+            edition = NFT(layers=layers, size=self.config.size, layers_path=self.config.layers_path)
             nft_list.append(edition.create_image())
 
-        dirname = os.path.join("sloths", datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
+        dirname = os.path.join(self.config.output_path, datetime.now().strftime("%m-%d-%Y %H-%M-%S"))
         os.makedirs(dirname, exist_ok=True)
         for n, nft in enumerate(nft_list):
             nft.save(os.path.join(dirname, f"{n}.png"))
