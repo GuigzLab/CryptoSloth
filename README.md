@@ -12,7 +12,7 @@ pip install Pillow configparser
 To get a custom generation, please change values in the [config file](config.ini) respecting the format already existing.  
 
 |          Option          	| Description                                                                                                     	|
-|:------------------------:	|-(----------------------------------------------------------------------------------------------------------------	|
+|:------------------------:	|-----------------------------------------------------------------------------------------------------------------	|
 | `edition_size`           	| Number of images to be generated.                                                                               	|
 | `output_path`            	| Name of the output directory.                                                                                   	|
 | `size`                   	| Image size in pixels.                                                                                           	|
