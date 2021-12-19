@@ -1,5 +1,6 @@
 import os
 import random
+import numpy as np
 
 from PIL import Image
 
@@ -40,6 +41,19 @@ class NFT:
             layer_path = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and layer_element in f][0]
             layer_img = Image.open(os.path.join(path, layer_path), 'r').convert("RGBA")
             image.paste(layer_img, (0, 0), layer_img)
+
+            # TODO - Config
+            # Shiny
+            if random.randint(1, 100) <= 2:
+                colors = [(49, 34, 5), (85, 85, 85), (255, 187, 128)]
+                new_colors = [(25, 16, 0), (255, 96, 96), (129, 99, 76)]
+
+                data = np.array(image.convert('RGBA'))
+                red, green, blue, alpha = data.T
+                for n, v in enumerate(colors):
+                    area = (red == v[0]) & (green == v[1]) & (blue == v[2])
+                    data[..., :-1][area.T] = new_colors[n]
+                image = Image.fromarray(data).convert("RGBA")
 
         return image
 

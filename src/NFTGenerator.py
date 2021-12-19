@@ -93,7 +93,7 @@ class NFTGenerator:
 
     @staticmethod
     def generate_prewiew_gif(images, dirname):
-        if images:
-            images = [image.quantize(method=Image.MEDIANCUT) for image in images]
+        if images and len(images) > 1:
+            # images = [image.quantize(method=Image.MEDIANCUT) for image in images]
             images[0].save(os.path.join(dirname, "preview.gif"), format='GIF', save_all=True, append_images=images[1:],
                            optimize=False, duration=500, loop=0)
